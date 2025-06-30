@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Técnico BTC/USD</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: transparent;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #f39c12, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .loading {
+            text-align: center;
+            font-size: 1.2em;
+            color: #666;
+            margin: 40px 0;
+        }
+        
+        .analysis-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .signal-card {
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .signal-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .signal-strong-buy { border-left-color: #27ae60; }
+        .signal-buy { border-left-color: #2ecc71; }
+        .signal-neutral { border-left-color: #f39c12; }
+        .signal-sell { border-left-color: #e67e22; }
+        .signal-strong-sell { border-left-color: #e74c3c; }
+        
+        .signal-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .signal-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .timestamp {
+            text-align: center;
+            opacity: 0.7;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        #averageComment, #maTrends {
+            min-height: 200px;
+        }
+
+        .signal-comment {
+            font-size: 1.1em;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilos específicos para medias móviles */
+        .ma-trends-content {
+            margin-top: 10px;
+        }
+
+        .ma-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .ma-signal-buy {
+            color: #ffffff !important;
+            background: #27ae60 !important;
+            border-left: 4px solid #1e8449;
+        }
+
+        .ma-signal-sell {
+            color: #ffffff !important;
+            background: #e74c3c !important;
+            border-left: 4px solid #c0392b;
+        }
+
+        /* Ocultar valores numéricos */
+        .hidden-value {
+            display: none !important;
+        }
+
+        /* Estilos para descargo de responsabilidad y autores */
+        .disclaimer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .disclaimer-title {
+            font-weight: bold;
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        .authors {
+            text-align: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            font-weight: bold;
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span>📈</span> Análisis Técnico BTC/USD</h1>
+            <p>Análisis IA y Señales de Trading</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            <span>⏳</span> Cargando datos...
+        </div>
+        
+        <div id="content" style="display: none;">
+            <div class="analysis-panel" id="analysisPanel">
+                <!-- Lado izquierdo: Promedio y Comentario -->
+                <div id="averageComment" class="signal-card signal-neutral"></div>
+                <!-- Lado derecho: Medias Móviles -->
+                <div id="maTrends" class="signal-card signal-neutral"></div>
+            </div>
+            
+            <div class="timestamp" id="timestamp">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <div class="disclaimer">
+                <div class="disclaimer-title">⚠️ Descargo de Responsabilidad</div>
+                <div>Esto no es ningún consejo financiero, tan sólo es una evaluación de previsión.</div>
+            </div>
+
+            <div class="authors">
+                👥 Autores: Tom Lips & VipTrader
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = [];
+        
+        // Eliminados los datos simulados - solo usar datos reales de la API
+
+        // Función para calcular media móvil simple
+        function calculateSMA(data, period) {
+            const sma = [];
+            for (let i = period - 1; i < data.length; i++) {
+                const sum = data.slice(i - period + 1, i + 1).reduce((a, b) => a + b, 0);
+                sma.push(sum / period);
+            }
+            return sma;
+        }
+        
+        // Función para obtener datos REALES de Bitcoin Cash (BCH/USD) desde CoinGecko
+        async function fetchBTCData() {
+            const endpoints = [
+                'https://api.coingecko.com/api/v3/coins/bitcoin-cash/market_chart?vs_currency=usd&days=2&interval=hourly',
+                'https://api.coingecko.com/api/v3/coins/bitcoin-cash/market_chart?vs_currency=usd&days=1&interval=hourly',
+                'https://api.coingecko.com/api/v3/coins/bitcoin-cash/market_chart?vs_currency=usd&days=1'
+            ];
+            
+            for (let i = 0; i < endpoints.length; i++) {
+                try {
+                    console.log(`Intentando endpoint ${i + 1}/${endpoints.length}... (BCH/USD)`);
+                    
+                    const response = await fetch(endpoints[i], {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.prices && data.prices.length > 0) {
+                        console.log(`✅ Datos BCH obtenidos exitosamente: ${data.prices.length} puntos`);
+                        console.log(`Precio actual BCH: ${data.prices[data.prices.length - 1][1].toFixed(2)}`);
+                        return data.prices;
+                    } else {
+                        throw new Error('Respuesta sin datos de precios válidos');
+                    }
+                    
+                } catch (error) {
+                    console.error(`❌ Endpoint ${i + 1} falló:`, error.message);
+                    
+                    if (i === endpoints.length - 1) {
+                        console.warn('Todos los endpoints fallaron, no se pueden obtener datos reales');
+                        return null; // Retornar null en lugar de datos simulados
+                    }
+                }
+            }
+        }
+        
+        // Función para analizar señales de trading (lógica original)
+        function analyzeSignals(prices, mas) {
+            const currentPrice = prices[prices.length - 1];
+            
+            let aboveCount = 0;
+            let belowCount = 0;
+            
+            // Analizar cada MA individualmente
+            const maSignals = {};
+            Object.keys(mas).forEach(period => {
+                const ma = mas[period];
+                if (ma && ma.length > 0) {
+                    const lastMA = ma[ma.length - 1];
+                    
+                    if (currentPrice > lastMA) {
+                        aboveCount++;
+                        maSignals[period] = 'buy';
+                    } else {
+                        belowCount++;
+                        maSignals[period] = 'sell';
+                    }
+                }
+            });
+            
+            const maTrends = {};
+            Object.keys(mas).forEach(period => {
+                const ma = mas[period];
+                if (ma && ma.length >= 2) {
+                    maTrends[period] = ma[ma.length - 1] > ma[ma.length - 2] ? 'up' : 'down';
+                } else if (ma && ma.length === 1) {
+                    maTrends[period] = 'neutral';
+                }
+            });
+            
+            let signal = 'neutral';
+            const totalMAs = Object.keys(mas).length;
+            
+            if (aboveCount >= Math.ceil(totalMAs * 0.75)) {
+                signal = 'strong-buy';
+            } else if (aboveCount >= Math.ceil(totalMAs * 0.5)) {
+                signal = 'buy';
+            } else if (belowCount >= Math.ceil(totalMAs * 0.75)) {
+                signal = 'strong-sell';
+            } else if (belowCount >= Math.ceil(totalMAs * 0.5)) {
+                signal = 'sell';
+            }
+            
+            return { signal, aboveCount, belowCount, maTrends, maSignals, mas };
+        }
+        
+        // Función para mostrar el análisis
+        function displayAnalysis(analysis, currentPrice) {
+            const averageComment = document.getElementById('averageComment');
+            const maTrends = document.getElementById('maTrends');
+
+            // Calcular el promedio de todas las MAs
+            const maValues = [];
+            Object.keys(analysis.mas).forEach(period => {
+                const ma = analysis.mas[period];
+                if (ma && ma.length > 0) {
+                    maValues.push(ma[ma.length - 1]);
+                }
+            });
+            
+            if (maValues.length === 0) {
+                console.error('No hay valores de MA válidos');
+                return;
+            }
+            
+            const averageMA = maValues.reduce((a, b) => a + b, 0) / maValues.length;
+
+            // Determinar comentario de señal de trading para el promedio
+            let averageSignalClass = 'neutral';
+            let averageCommentText = 'No hay señal clara';
+            
+            if (analysis.signal === 'strong-buy') {
+                averageSignalClass = 'strong-buy';
+                averageCommentText = 'Posibles Compras...';
+            } else if (analysis.signal === 'buy') {
+                averageSignalClass = 'buy';
+                averageCommentText = 'Posibles Compras...';
+            } else if (analysis.signal === 'strong-sell') {
+                averageSignalClass = 'strong-sell';
+                averageCommentText = 'Posibles Ventas...';
+            } else if (analysis.signal === 'sell') {
+                averageSignalClass = 'sell';
+                averageCommentText = 'Posibles Ventas...';
+            }
+
+            // Aplicar clase CSS correspondiente
+            averageComment.className = `signal-card signal-${averageSignalClass}`;
+            maTrends.className = `signal-card signal-${averageSignalClass}`;
+
+            // Lado izquierdo: Promedio y Comentario (centrado verticalmente)
+            averageComment.innerHTML = `
+                <div class="signal-title">Análisis General</div>
+                <div class="signal-comment">${averageCommentText}</div>
+            `;
+
+            // Lado derecho: Análisis IA individuales (SIN VALORES NUMÉRICOS)
+            const periodNames = {
+                '1': '30m',
+                '2': '1h', 
+                '4': '2h'
+            };
+
+            let maTrendsHTML = '<div class="signal-title">Análisis IA</div><div class="ma-trends-content">';
+            
+            Object.keys(analysis.maTrends).forEach(period => {
+                if (analysis.mas[period] && analysis.mas[period].length > 0) {
+                    const periodText = periodNames[period] || `${period}p`;
+                    const trend = analysis.maTrends[period];
+                    const signal = analysis.maSignals[period];
+                    
+                    // Corregir la lógica: el ícono debe coincidir con la señal
+                    let trendIcon, signalText, signalClass;
+                    
+                    if (signal === 'buy') {
+                        trendIcon = '📈';
+                        // Determinar si es Alcista o Muy Alcista basado en la tendencia
+                        if (trend === 'up') {
+                            signalText = 'Muy Alcista';
+                        } else {
+                            signalText = 'Alcista';
+                        }
+                        signalClass = 'ma-signal-buy';
+                    } else {
+                        trendIcon = '📉';
+                        // Determinar si es Bajista o Muy Bajista basado en la tendencia
+                        if (trend === 'down') {
+                            signalText = 'Muy Bajista';
+                        } else {
+                            signalText = 'Bajista';
+                        }
+                        signalClass = 'ma-signal-sell';
+                    }
+                    
+                    maTrendsHTML += `
+                        <div class="ma-item ${signalClass}">
+                            <span>${trendIcon} A${periodText}: ${signalText}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            maTrendsHTML += '</div>';
+            maTrends.innerHTML = maTrendsHTML;
+        }
+        
+        // Función principal para cargar y procesar datos
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('content');
+            
+            try {
+                // Solo mostrar loading en la primera carga
+                if (content.style.display === 'none') {
+                    loading.style.display = 'block';
+                }
+                
+                const rawData = await fetchBTCData();
+                
+                if (!rawData || rawData.length === 0) {
+                    // Mostrar mensaje de error cuando no hay datos
+                    const averageComment = document.getElementById('averageComment');
+                    const maTrends = document.getElementById('maTrends');
+                    
+                    averageComment.className = 'signal-card signal-neutral';
+                    maTrends.className = 'signal-card signal-neutral';
+                    
+                    averageComment.innerHTML = `
+                        <div class="signal-title">Error de Datos</div>
+                        <div class="signal-comment">NO HAY DATOS CARGADOS, IMPOSIBLE REALIZAR NINGÚN CÁLCULO</div>
+                    `;
+                    
+                    maTrends.innerHTML = `
+                        <div class="signal-title">Análisis IA</div>
+                        <div class="ma-trends-content" style="text-align: center; padding: 20px; color: #666;">
+                            Sin datos disponibles
+                        </div>
+                    `;
+                    
+                    document.getElementById('timestamp').innerHTML = `
+                        Última actualización: ${new Date().toLocaleString('es-ES')}<br>
+                        <small style="opacity: 0.7;">Error al obtener datos • Reintentando cada 10 minutos</small>
+                    `;
+                    
+                    loading.style.display = 'none';
+                    content.style.display = 'block';
+                    return;
+                }
+                
+                const timestamps = rawData.map(item => new Date(item[0]).toLocaleString('es-ES', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }));
+                const prices = rawData.map(item => item[1]);
+                
+                const dataLength = prices.length;
+                const periods = {
+                    '1': Math.max(1, Math.floor(dataLength * 0.08)),
+                    '2': Math.max(2, Math.floor(dataLength * 0.15)),
+                    '4': Math.max(4, Math.floor(dataLength * 0.25))
+                };
+                
+                const mas = {};
+                Object.keys(periods).forEach(key => {
+                    mas[key] = calculateSMA(prices, periods[key]);
+                });
+                
+                const currentPrice = prices[prices.length - 1];
+                const analysis = analyzeSignals(prices, mas);
+                
+                displayAnalysis(analysis, currentPrice);
+                
+                document.getElementById('timestamp').innerHTML = `
+                    Última actualización: ${new Date().toLocaleString('es-ES')}<br>
+                    <small style="opacity: 0.7;">Datos en tiempo real • Actualización automática cada 10 minutos</small>
+                `;
+                
+                loading.style.display = 'none';
+                content.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error in loadData:', error);
+                if (content.style.display === 'none') {
+                    loading.innerHTML = `
+                        <div style="text-align: center; padding: 20px;">
+                            <span>❌</span> Error al cargar los datos<br>
+                            <small style="opacity: 0.8;">${error.message}. Reintentando automáticamente...</small>
+                        </div>
+                    `;
+                }
+            }
+        }
+        
+        // Cargar datos al inicio
+        loadData();
+        
+        // Actualizar automáticamente cada 10 minutos (600,000 ms)
+        setInterval(loadData, 10 * 60 * 1000);
+    </script>
+</body>
+</html>
